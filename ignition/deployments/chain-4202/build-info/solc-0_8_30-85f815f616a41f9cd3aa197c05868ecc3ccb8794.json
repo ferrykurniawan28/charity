@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_30-85f815f616a41f9cd3aa197c05868ecc3ccb8794",
+  "solcVersion": "0.8.30",
+  "solcLongVersion": "0.8.30+commit.73712a01",
+  "userSourceNameMap": {
+    "contracts/mockIDRX.sol": "project/contracts/mockIDRX.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "prague",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/mockIDRX.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.30;\r\n\r\n/**\r\n * @title IDRXToken\r\n * @dev Full ERC-20 implementation dengan approval system untuk charity platform\r\n */\r\ncontract IDRXToken {\r\n    // ============ METADATA ============\r\n    string public name;\r\n    string public symbol;\r\n    uint8 public decimals;\r\n\r\n    // ============ STATE ============\r\n    mapping(address => uint256) private _balances;\r\n    mapping(address => mapping(address => uint256)) private _allowances;\r\n    uint256 private _totalSupply;\r\n\r\n    // ============ EVENTS ============\r\n    event Transfer(address indexed from, address indexed to, uint256 value);\r\n    event Approval(address indexed owner, address indexed spender, uint256 value);\r\n\r\n    // ============ CONSTRUCTOR ============\r\n    constructor() {\r\n        name = \"Mock IDRX Token\";\r\n        symbol = \"IDRX\";\r\n        decimals = 18;\r\n        \r\n        uint256 initialSupply = 1000000 * 10**uint256(decimals);\r\n        _mint(msg.sender, initialSupply);\r\n    }\r\n\r\n    // ============ VIEW FUNCTIONS ============\r\n    function totalSupply() public view returns (uint256) {\r\n        return _totalSupply;\r\n    }\r\n\r\n    function balanceOf(address account) public view returns (uint256) {\r\n        return _balances[account];\r\n    }\r\n\r\n    function allowance(address owner, address spender) public view returns (uint256) {\r\n        return _allowances[owner][spender];\r\n    }\r\n\r\n    // ============ TRANSFER FUNCTIONS ============\r\n    function transfer(address to, uint256 value) public returns (bool) {\r\n        _transfer(msg.sender, to, value);\r\n        return true;\r\n    }\r\n\r\n    function transferFrom(address from, address to, uint256 value) public returns (bool) {\r\n        _spendAllowance(from, msg.sender, value);\r\n        _transfer(from, to, value);\r\n        return true;\r\n    }\r\n\r\n    // ============ APPROVAL FUNCTIONS ============\r\n    function approve(address spender, uint256 value) public returns (bool) {\r\n        _approve(msg.sender, spender, value);\r\n        return true;\r\n    }\r\n\r\n    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {\r\n        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);\r\n        return true;\r\n    }\r\n\r\n    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {\r\n        uint256 currentAllowance = _allowances[msg.sender][spender];\r\n        require(currentAllowance >= subtractedValue, \"ERC20: decreased allowance below zero\");\r\n        unchecked {\r\n            _approve(msg.sender, spender, currentAllowance - subtractedValue);\r\n        }\r\n        return true;\r\n    }\r\n\r\n    // ============ INTERNAL FUNCTIONS ============\r\n    function _transfer(address from, address to, uint256 value) internal {\r\n        require(from != address(0), \"ERC20: transfer from the zero address\");\r\n        require(to != address(0), \"ERC20: transfer to the zero address\");\r\n\r\n        uint256 fromBalance = _balances[from];\r\n        require(fromBalance >= value, \"ERC20: transfer amount exceeds balance\");\r\n        \r\n        unchecked {\r\n            _balances[from] = fromBalance - value;\r\n            _balances[to] += value;\r\n        }\r\n\r\n        emit Transfer(from, to, value);\r\n    }\r\n\r\n    function _mint(address account, uint256 value) internal {\r\n        require(account != address(0), \"ERC20: mint to the zero address\");\r\n\r\n        _totalSupply += value;\r\n        unchecked {\r\n            _balances[account] += value;\r\n        }\r\n        emit Transfer(address(0), account, value);\r\n    }\r\n\r\n    function _approve(address owner, address spender, uint256 value) internal {\r\n        require(owner != address(0), \"ERC20: approve from the zero address\");\r\n        require(spender != address(0), \"ERC20: approve to the zero address\");\r\n\r\n        _allowances[owner][spender] = value;\r\n        emit Approval(owner, spender, value);\r\n    }\r\n\r\n    function _spendAllowance(address owner, address spender, uint256 value) internal {\r\n        uint256 currentAllowance = _allowances[owner][spender];\r\n        if (currentAllowance != type(uint256).max) {\r\n            require(currentAllowance >= value, \"ERC20: insufficient allowance\");\r\n            unchecked {\r\n                _approve(owner, spender, currentAllowance - value);\r\n            }\r\n        }\r\n    }\r\n\r\n    // ============ ADDITIONAL FEATURES FOR CHARITY ============\r\n    \r\n    /**\r\n     * @dev Mint new tokens - only for testing/development\r\n     * In production, you might want to restrict this to owner\r\n     */\r\n    function mint(address to, uint256 value) external {\r\n        // In production, add access control:\r\n        // require(msg.sender == owner, \"Only owner can mint\");\r\n        _mint(to, value);\r\n    }\r\n\r\n    /**\r\n     * @dev Batch transfer for airdrops or bulk donations\r\n     */\r\n    function batchTransfer(address[] calldata recipients, uint256[] calldata values) external returns (bool) {\r\n        require(recipients.length == values.length, \"IDRX: arrays length mismatch\");\r\n        \r\n        for (uint256 i = 0; i < recipients.length; i++) {\r\n            _transfer(msg.sender, recipients[i], values[i]);\r\n        }\r\n        return true;\r\n    }\r\n}"
+      }
+    }
+  }
+}
